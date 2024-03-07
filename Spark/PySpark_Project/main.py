@@ -1,7 +1,10 @@
 #IMPORTING NECESSARY LIBRARIES AND FUNCTIONS
+import logging
+
+
 import env_variables as env
 from spark_object_create import create_spark_object
-
+import logging.config
 
 
 def main():
