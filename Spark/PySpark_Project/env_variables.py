@@ -10,12 +10,12 @@ header = os.environ['header']
 inferSchema = os.environ['inferSchema']
 
 
-#Defining appName
+# Defining appName
 appName = 'PySpark Project'
 
-#Obtaining the current Working Directory
+# Obtaining the current Working Directory
 current = os.getcwd()
 
-#Defining the path to the data
-source_olap = current + 'source//olap'
-source_oltp = current + 'source//oltp'
+# Defining the path to the data
+source_olap = current + '\\source\\olap'
+source_oltp = current + '\\source\\oltp'
