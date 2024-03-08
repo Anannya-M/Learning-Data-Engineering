@@ -6,6 +6,7 @@ import logging.config
 import env_variables as env
 from spark_object_create import create_spark_object
 from data_ingestion import load_file, display_data
+from data_preprocessing import process_data
 
 logging.config.fileConfig("Properties/configuration/logging.config")
 
@@ -59,7 +60,14 @@ def main():
         fact_data = load_file(spark=spark, file_dir=file_dir, file_format=file_format, header=header, inferSchema=inferSchema)
         display_data(fact_data)
 
+        logging.info("Starting the processing of data....")
+        city_data_sel, presc_data_sel = process_data(city_data,fact_data)
 
+        logging.info("CITY DATA ======>")
+        display_data(city_data_sel)
+
+        logging.info("FACT DATA ======>")
+        display_data(presc_data_sel)
 
 
 
