@@ -6,7 +6,10 @@ import logging.config
 import env_variables as env
 from spark_object_create import create_spark_object
 from data_ingestion import load_file, display_data
-from data_preprocessing import process_data
+from data_preprocessing import process_data, print_schema, check_for_nulls
+from data_transformation import data_report
+
+from pyspark.sql.functions import *
 
 logging.config.fileConfig("Properties/configuration/logging.config")
 
@@ -15,7 +18,7 @@ logging.config.fileConfig("Properties/configuration/logging.config")
 
 
 def main():
-    global file_format, file_dir, header, inferSchema
+    global file_format, file_dir, header, inferSchema, city_data_sel
     try:
         logging.info("Let's get started....")
 
@@ -69,13 +72,33 @@ def main():
         logging.info("FACT DATA ======>")
         display_data(presc_data_sel)
 
+        logging.info("Printing the schema of the fact data...")
+        print_schema(presc_data_sel)
 
+        logging.info("Checking for null values in dataframe after processing....")
+        check_nulls_df = check_for_nulls(presc_data_sel)
+        display_data(check_nulls_df)
 
+        logging.info("Filling the null values in 'total_claim_count' using fillna()...")
+        mean_claim = presc_data_sel.select(mean(col('total_claim_count'))).collect()[0][0]
+        presc_data_sel = presc_data_sel.fillna(mean_claim, "total_claim_count")
+
+        logging.info("Checking for null values in dataframe after using fillna()....")
+        check_nulls_df = check_for_nulls(presc_data_sel)
+        display_data(check_nulls_df)
+
+        logging.info("Starting the process of data transformation....")
+        final_data = data_report(city_data_sel,presc_data_sel)
+
+        logging.info("Now, diplaying the data report (tranformed data)....")
+        display_data(final_data)
 
 
 
     except Exception as e:
         logging.error("An error occured while running the main() function====", str(e))
+
+    return city_data_sel
 
 
 if __name__ == "__main__":

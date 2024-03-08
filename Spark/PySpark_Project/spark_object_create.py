@@ -20,6 +20,7 @@ def create_spark_object(env, appName):
         logger.info(f"Master is {master}")
 
         spark = SparkSession.builder.appName(appName).master(master).getOrCreate()
+        #spark.conf.set("spark.executor.memory", "1000")
         return spark
 
     except Exception as e:
