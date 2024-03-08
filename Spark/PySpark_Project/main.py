@@ -7,7 +7,9 @@ import env_variables as env
 from spark_object_create import create_spark_object
 from data_ingestion import load_file, display_data
 from data_preprocessing import process_data, print_schema, check_for_nulls
-from data_transformation import data_report
+from data_transformation import data_report, data_report2
+from extraction import extract_files
+from persist import hive_data_persist, hive_data_persist_for_presc, load_data_mysql
 
 from pyspark.sql.functions import *
 
@@ -42,7 +44,8 @@ def main():
                 inferSchema = env.inferSchema
 
         logging.info(f"Reading a {file_format} file....")
-        city_data = load_file(spark=spark, file_dir=file_dir, file_format=file_format, header=header, inferSchema=inferSchema)
+        city_data = load_file(spark=spark, file_dir=file_dir, file_format=file_format, header=header,
+                              inferSchema=inferSchema)
         display_data(city_data)
 
         for file in os.listdir(env.source_oltp):
@@ -60,11 +63,12 @@ def main():
                 header = env.header
                 inferSchema = env.inferSchema
         logging.info(f"Reading a {file_format} file....")
-        fact_data = load_file(spark=spark, file_dir=file_dir, file_format=file_format, header=header, inferSchema=inferSchema)
+        fact_data = load_file(spark=spark, file_dir=file_dir, file_format=file_format, header=header,
+                              inferSchema=inferSchema)
         display_data(fact_data)
 
         logging.info("Starting the processing of data....")
-        city_data_sel, presc_data_sel = process_data(city_data,fact_data)
+        city_data_sel, presc_data_sel = process_data(city_data, fact_data)
 
         logging.info("CITY DATA ======>")
         display_data(city_data_sel)
@@ -88,17 +92,30 @@ def main():
         display_data(check_nulls_df)
 
         logging.info("Starting the process of data transformation....")
-        final_data = data_report(city_data_sel,presc_data_sel)
+        final_data = data_report(city_data_sel, presc_data_sel)
 
         logging.info("Now, diplaying the data report (tranformed data)....")
         display_data(final_data)
 
+        logging.info("Displaying a second report on the fact data....")
+        report2 = data_report2(presc_data_sel)
+        display_data(report2)
+
+        logging.info("Extracting the reports generated....")
+        hive_data_persist(spark=spark, data=final_data, dataname="city_data", partitionBy="State", mode='append')
+        hive_data_persist_for_presc(spark=spark, data=report2, dataname="presc_data", partitionBy="presc_state",
+                                    mode='append')
+
+        logging.info("Loading the data into MySQL....")
+        load_data_mysql(spark=spark, data=final_data, dataname="city_data",
+                        url="jdbc:mysql://localhost:3306/pysparkproj", dbtable="city_data", mode='append',
+                        user=env.user, password=env.password)
 
 
     except Exception as e:
         logging.error("An error occured while running the main() function====", str(e))
-
-    return city_data_sel
+    else:
+        logging.warning("main() method executed successfully....")
 
 
 if __name__ == "__main__":

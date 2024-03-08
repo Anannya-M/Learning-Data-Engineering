@@ -19,8 +19,8 @@ def create_spark_object(env, appName):
             master = 'yarn'
         logger.info(f"Master is {master}")
 
-        spark = SparkSession.builder.appName(appName).master(master).getOrCreate()
-        #spark.conf.set("spark.executor.memory", "1000")
+        spark = SparkSession.builder.master(master).appName(appName).enableHiveSupport().config('spark.driver.extraclasspath', 'mysql-connector-j-8.3.0.jar').getOrCreate()
+        # spark.conf.set("spark.executor.memory", "1000")
         return spark
 
     except Exception as e:
