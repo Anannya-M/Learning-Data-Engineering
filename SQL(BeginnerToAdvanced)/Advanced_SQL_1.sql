@@ -125,5 +125,3 @@ select * from country_details;
 
 -- To show all the views
 show full tables where TABLE_TYPE="VIEW";
-
---
