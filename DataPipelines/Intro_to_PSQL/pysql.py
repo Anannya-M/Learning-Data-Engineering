@@ -45,6 +45,8 @@ if __name__ == '__main__':
     #print(cur.fetchall())
 
     cur.execute('''SELECT * FROM source_table WHERE purchase_date > '2023-01-01';''')
+
+    #Inserting the data extraced from source table to target table
     cur.execute('''INSERT INTO target_table (gamer_name, game_title, price)
                 SELECT gamer_name, game_title, price
                 FROM source_table 
